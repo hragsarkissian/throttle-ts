@@ -1,0 +1,8 @@
+{
+  "name": "throttle",
+  "version": "1.0.0",
+  "description": "typescript throttle",
+  "main": "main.js",
+  "repository": "https://github.com/hragsarkissian/throttle-ts.git",
+  "license": "ISC"
+}
