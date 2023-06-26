@@ -1,12 +1,12 @@
 function throttle(handler, options = {}) {
     let timeLeft = null;
-    let leading = false;
-    let lastExecTime = null;
+    let leadingCall = false;
+    let previousCallTime = 0;
     let result;
     let error;
   
     //set the 3 main arguments to options
-    const { delay = 0, leadingCall = false, onError } = options;
+    const { delay = 0, leading = false, onError } = options;
       //...args parameter will capture the arguments "Message 1" and 
       // and pass them as an array to the underlying handler function
     function invoke(...args) {
@@ -28,7 +28,7 @@ function throttle(handler, options = {}) {
       console.log("its cancelled")
       clearTimeout(timeLeft);
       timeLeft = null;
-      leading = false;
+      leadingCall = false;
       previousCallTime = 0;
       result = undefined;
       error = undefined;
@@ -36,28 +36,22 @@ function throttle(handler, options = {}) {
   
     //throttled function is used to moderate the invocation of the handler
     function throttled(...args) {
-      const currentTime = Date.now();
-      const elapsedTime = currentTime - lastExecTime;
-    
-      if (leading) {
-        // If leading is enabled and there is no pending execution,
-        // execute the function immediately
+      const now = Date.now();
+  
+      if (!leadingCall && (!timeLeft || now - previousCallTime >= delay)) {
+        leadingCall = true;
         invoke.apply(this, args);
-        lastExecTime = currentTime;
       }
-
-        else if (!timeLeft && elapsedTime >= delay) {
-          result = invoke.apply(this, args);
-          lastExecTime = currentTime;
+  
+      clearTimeout(timeLeft);
+      timeoutId = setTimeout(() => {
+        if (leading && leadingCall) {
+          leadingCall = false;
+          return;
         }
-        else if (!timeLeft) {
-        timeLeft = setTimeout(() => {
-            console.log("hello");
-            result = invoke.apply(this, args);
-            lastExecTime = Date.now();
-            clearTimeout(timeLeft);
-        }, delay - elapsedTime);
-        }
+        invoke.apply(this, args);
+      }, delay - (now - previousCallTime));
+  
       return result;
     }
   
@@ -80,8 +74,9 @@ function throttle(handler, options = {}) {
   });
   
   // Usage
-  superHandler("Message 1",{leading: true}); // Leading edge invocation
+  superHandler("Message 1"); // Leading edge invocation
   superHandler("Message 2"); // Skipped due to throttling delay
   superHandler.invoke("Message 3"); // Immediate invocation
+  superHandler("Message 4"); // Immediate invocation
 
   superHandler.cancel(); // Cancel the current delay
