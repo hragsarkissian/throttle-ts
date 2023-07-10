@@ -1,12 +1,19 @@
-function throttle(handler, options = {}) {
+const options = {
+  delay: 1000,
+  leading: true,
+  onError: function (error) {
+    // Error handler implementation
+  }
+};
+export function throttle(handler, options) {
     let timeLeft = null;
     let leadingCall = false;
     let previousCallTime = 0;
     let result;
     let error;
-  
     //set the 3 main arguments to options
     const { delay = 0, leading = false, onError } = options;
+    console.log("delay",options);
       //...args parameter will capture the arguments "Message 1" and 
       // and pass them as an array to the underlying handler function
     function invoke(...args) {
@@ -25,7 +32,7 @@ function throttle(handler, options = {}) {
     }
 
     function cancel() {
-      console.log("its cancelled")
+      console.log("Skipped due to throttling delay")
       clearTimeout(timeLeft);
       timeLeft = null;
       leadingCall = false;
@@ -63,20 +70,19 @@ function throttle(handler, options = {}) {
 
     return superHandler;
   }
+
+  function wait(milliseconds) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
+  }
   
   // Example usage
-  const logHandler = (message) => console.log(message);
+  const calculate = (num) => num * 2;
   
-  const superHandler = throttle(logHandler, {
-    delay: 200,
-    leading: false,
-    onError: (error) => console.error(error),
-  });
+  const superHandler = throttle(calculate, options);
   
   // Usage
-  superHandler("Message 1"); // Leading edge invocation
-  superHandler("Message 2"); // Skipped due to throttling delay
-  superHandler.invoke("Message 3"); // Immediate invocation
-  superHandler("Message 4"); // Immediate invocation
-
-  superHandler.cancel(); // Cancel the current delay
+  const output = superHandler(10); // Leading edge invocation
+  console.log(output);
+  wait(1000)
+  const output1 = superHandler.invoke(20);
+  console.log(output1); // 2
