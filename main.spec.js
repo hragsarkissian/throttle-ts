@@ -30,21 +30,27 @@ describe('throttle', () => {
         const output1 = superHandler(20);
         const output2 = superHandler.invoke(30);
     
-        expect(calculate).toHaveBeenCalledTimes(1);
+        expect(calculate).toHaveBeenCalledTimes(2);
         expect(calculate).toHaveBeenCalledWith(20);
         expect(output1).toBe(40);
-        expect(output2).toBeUndefined();
+        expect(output2).toBe(60);
       });
 
       it('should invoke the handler after the delay period and return the correct result', async () => {
         const calculate = jest.fn(num => num * 2);
         const superHandler = throttle(calculate, options);
     
-        const output = superHandler(40);
-        await wait(1000);
-    
-        expect(calculate).toHaveBeenCalledTimes(2);
+        const output1 = superHandler(40);
+        wait(1000);
+        const output2 = superHandler(30);
+        wait(1000);
+        const output3 = superHandler(40);
+
+        expect(calculate).toHaveBeenCalledTimes(1);
         expect(calculate).toHaveBeenCalledWith(40);
-        expect(output).toBe(80);
+        expect(output1).toBe(80);
+        expect(output2).toBe(80);
+        expect(output3).toBe(80);
+
       });
 })

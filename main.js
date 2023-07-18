@@ -1,11 +1,11 @@
 const options = {
   delay: 1000,
-  leading: true,
+  leading: false,
   onError: function (error) {
     // Error handler implementation
   }
 };
-export function throttle(handler, options) {
+function throttle(handler, options) {
     let timeLeft = null;
     let leadingCall = false;
     let previousCallTime = 0;
@@ -13,7 +13,6 @@ export function throttle(handler, options) {
     let error;
     //set the 3 main arguments to options
     const { delay = 0, leading = false, onError } = options;
-    console.log("delay",options);
       //...args parameter will capture the arguments "Message 1" and 
       // and pass them as an array to the underlying handler function
     function invoke(...args) {
@@ -44,21 +43,16 @@ export function throttle(handler, options) {
     //throttled function is used to moderate the invocation of the handler
     function throttled(...args) {
       const now = Date.now();
-  
-      if (!leadingCall && (!timeLeft || now - previousCallTime >= delay)) {
-        leadingCall = true;
+      
+      if (now - previousCallTime >= delay) {
         invoke.apply(this, args);
       }
-  
       clearTimeout(timeLeft);
-      timeoutId = setTimeout(() => {
-        if (leading && leadingCall) {
-          leadingCall = false;
-          return;
-        }
+      timeLeft = setTimeout(() => {
         invoke.apply(this, args);
       }, delay - (now - previousCallTime));
-  
+
+      console.log("result3", result)
       return result;
     }
   
@@ -74,15 +68,18 @@ export function throttle(handler, options) {
   function wait(milliseconds) {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
   }
-  
+
   // Example usage
   const calculate = (num) => num * 2;
   
-  const superHandler = throttle(calculate, options);
+  const superHandler = throttle(calculate, { delay: 100});
   
   // Usage
-  const output = superHandler(10); // Leading edge invocation
-  console.log(output);
-  wait(1000)
-  const output1 = superHandler.invoke(20);
-  console.log(output1); // 2
+  let output;
+ output = superHandler(1); 
+ output = superHandler(2);
+ output = superHandler(3);
+ output = superHandler(4);
+ output = superHandler(5);
+ output = superHandler(6);
+
