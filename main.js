@@ -10,6 +10,7 @@ function throttle(handler, options) {
     let leadingCall = false;
     let previousCallTime = 0;
     let result;
+  
     let error;
     //set the 3 main arguments to options
     const { delay = 0, leading = false, onError } = options;
@@ -17,7 +18,7 @@ function throttle(handler, options) {
       // and pass them as an array to the underlying handler function
     function invoke(...args) {
       error = undefined;
-
+      //possible issue of inconsistency
       try {
         result = handler.apply(this, args);
       } catch (err) {
@@ -36,8 +37,8 @@ function throttle(handler, options) {
       timeLeft = null;
       leadingCall = false;
       previousCallTime = 0;
-      result = undefined;
-      error = undefined;
+      //no need to statically save the error
+      //error = undefined;
     }
   
     //throttled function is used to moderate the invocation of the handler
@@ -48,6 +49,8 @@ function throttle(handler, options) {
         invoke.apply(this, args);
       }
       clearTimeout(timeLeft);
+      //setTimeout returns simple id - timeLeft and setTimeout are different values
+      //keep only delay in setTimeout
       timeLeft = setTimeout(() => {
         invoke.apply(this, args);
       }, delay - (now - previousCallTime));
@@ -82,4 +85,3 @@ function throttle(handler, options) {
  output = superHandler(4);
  output = superHandler(5);
  output = superHandler(6);
-

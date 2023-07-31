@@ -41,16 +41,16 @@ describe('throttle', () => {
         const superHandler = throttle(calculate, options);
     
         const output1 = superHandler(40);
-        wait(1000);
+        await wait(1200);
         const output2 = superHandler(30);
-        wait(1000);
-        const output3 = superHandler(40);
+        await wait(1200);
+        const output3 = superHandler(50);
 
-        expect(calculate).toHaveBeenCalledTimes(1);
+        expect(calculate).toHaveBeenCalledTimes(3);
         expect(calculate).toHaveBeenCalledWith(40);
         expect(output1).toBe(80);
-        expect(output2).toBe(80);
-        expect(output3).toBe(80);
+        expect(output2).toBe(60);
+        expect(output3).toBe(100);
 
       });
 })
