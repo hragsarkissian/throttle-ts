@@ -1,61 +1,51 @@
-const options = {
-  delay: 1000,
-  leading: false,
-  onError: function (error) {
-    // Error handler implementation
-  }
-};
-function throttle(handler, options) {
+// const options1 = {
+//   delay: 1000,
+//   leading: false,
+//   onError: function (error) {
+//     // Error handler implementation
+//   }
+// };
+export function throttle(handler, options) {
     let timeLeft = null;
-    let leadingCall = false;
-    let previousCallTime = 0;
     let result;
-  
-    let error;
-    //set the 3 main arguments to options
-    const { delay = 0, leading = false, onError } = options;
-      //...args parameter will capture the arguments "Message 1" and 
-      // and pass them as an array to the underlying handler function
+
     function invoke(...args) {
-      error = undefined;
-      //possible issue of inconsistency
       try {
         result = handler.apply(this, args);
       } catch (err) {
-        error = err;
-        if (onError) {
           onError(err);
-        }
       }
-      previousCallTime = Date.now();
       return result;
     }
 
     function cancel() {
-      console.log("Skipped due to throttling delay")
+      console.log("canceled");
       clearTimeout(timeLeft);
       timeLeft = null;
-      leadingCall = false;
-      previousCallTime = 0;
-      //no need to statically save the error
-      //error = undefined;
+    }
+
+    function onError(error) {
+      return error;
     }
   
     //throttled function is used to moderate the invocation of the handler
     function throttled(...args) {
-      const now = Date.now();
-      
-      if (now - previousCallTime >= delay) {
-        invoke.apply(this, args);
-      }
-      clearTimeout(timeLeft);
-      //setTimeout returns simple id - timeLeft and setTimeout are different values
-      //keep only delay in setTimeout
-      timeLeft = setTimeout(() => {
-        invoke.apply(this, args);
-      }, delay - (now - previousCallTime));
 
-      console.log("result3", result)
+      if(!options.leading) {
+        if(timeLeft > 0) {
+          superHandler.cancel()
+        }   
+
+        timeLeft = setTimeout(() => {
+          superHandler.invoke(...args);
+        }, options.delay);
+        
+      } else {
+        superHandler.invoke(...args);
+
+        timeoutId = setTimeout(() => {
+        }, options.delay);
+      }
       return result;
     }
   
@@ -73,15 +63,14 @@ function throttle(handler, options) {
   }
 
   // Example usage
-  const calculate = (num) => num * 2;
+  const calculate = (num) => num;
   
-  const superHandler = throttle(calculate, { delay: 100});
+  const throttled = throttle(calculate, { delay: 30 });
   
   // Usage
-  let output;
- output = superHandler(1); 
- output = superHandler(2);
- output = superHandler(3);
- output = superHandler(4);
- output = superHandler(5);
- output = superHandler(6);
+throttled(1); 
+throttled(2); 
+throttled(3); 
+throttled(4); 
+wait(35)
+
