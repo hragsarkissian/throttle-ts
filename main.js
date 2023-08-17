@@ -1,13 +1,7 @@
-// const options1 = {
-//   delay: 1000,
-//   leading: false,
-//   onError: function (error) {
-//     // Error handler implementation
-//   }
-// };
 export function throttle(handler, options) {
     let timeLeft = null;
     let result;
+    let wait = false;
 
     function invoke(...args) {
       try {
@@ -19,9 +13,8 @@ export function throttle(handler, options) {
     }
 
     function cancel() {
-      console.log("canceled");
+      wait = true;
       clearTimeout(timeLeft);
-      timeLeft = null;
     }
 
     function onError(error) {
@@ -30,20 +23,25 @@ export function throttle(handler, options) {
   
     //throttled function is used to moderate the invocation of the handler
     function throttled(...args) {
-
       if(!options.leading) {
+        wait = true;
+
         if(timeLeft > 0) {
-          superHandler.cancel()
+          superHandler.cancel();
         }   
 
         timeLeft = setTimeout(() => {
           superHandler.invoke(...args);
+          wait = false;
         }, options.delay);
         
-      } else {
+      } else {     
+        if(wait == false)   
         superHandler.invoke(...args);
+        wait = true;
 
-        timeoutId = setTimeout(() => {
+        timeLeft = setTimeout(() => {
+          wait = false;
         }, options.delay);
       }
       return result;
@@ -64,13 +62,9 @@ export function throttle(handler, options) {
 
   // Example usage
   const calculate = (num) => num;
-  
   const throttled = throttle(calculate, { delay: 30 });
-  
   // Usage
-throttled(1); 
-throttled(2); 
-throttled(3); 
-throttled(4); 
-wait(35)
-
+  throttled(1); 
+  throttled(2); 
+  throttled(3); 
+  throttled(4); 

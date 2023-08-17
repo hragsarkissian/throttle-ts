@@ -1,7 +1,7 @@
-import { throttle } from './main';
-//fix the import issue asap
+import { throttle } from './throttle.ts';
 
 let fn;
+const heavyLoadCallsCount = 100000;
 
 beforeEach(() => {
   fn = jest.fn((a) => a);
@@ -24,46 +24,14 @@ describe('throttle', () => {
       expect(fn).toHaveBeenCalledTimes(1);
       expect(fn).toHaveReturnedWith(4);
     });
+
+    test('leading throttle invoke first event only', async () => {
+      const throttleFn = throttle(fn, { delay: 30, leading: true });
   
-    // it('should invoke the handler immediately and return the correct result on leading edge invocation', () => {
-    //   const calculate = jest.fn(num => num * 2);
-    //   const superHandler = throttle(calculate, options);
-  
-    //   const output = superHandler(10);
-  
-    //   expect(calculate).toHaveBeenCalledTimes(1);
-    //   expect(calculate).toHaveBeenCalledWith(10);
-    //   expect(output).toBe(20);
-    // });
-
-    // it('should skip invocation and return undefined on multiple invocations within the delay period', () => {
-    //     const calculate = jest.fn(num => num * 2);
-    //     const superHandler = throttle(calculate, options);
-    
-    //     const output1 = superHandler(20);
-    //     const output2 = superHandler.invoke(30);
-    
-    //     expect(calculate).toHaveBeenCalledTimes(2);
-    //     expect(calculate).toHaveBeenCalledWith(20);
-    //     expect(output1).toBe(40);
-    //     expect(output2).toBe(60);
-    //   });
-
-      // it('should invoke the handler after the delay period and return the correct result', async () => {
-      //   const calculate = jest.fn(num => num * 2);
-      //   const superHandler = throttle(calculate, options);
-    
-      //   const output1 = superHandler(40);
-      //   await wait(1200);
-      //   const output2 = superHandler(30);
-      //   await wait(1200);
-      //   const output3 = superHandler(50);
-
-      //   expect(calculate).toHaveBeenCalledTimes(3);
-      //   expect(calculate).toHaveBeenCalledWith(40);
-      //   expect(output1).toBe(80);
-      //   expect(output2).toBe(60);
-      //   expect(output3).toBe(100);
-
-      // });
+      throttleFn(1);
+      throttleFn(2);
+      throttleFn(3);
+      throttleFn(4);
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
 })
