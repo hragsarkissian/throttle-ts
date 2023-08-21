@@ -34,4 +34,15 @@ describe('throttle', () => {
       throttleFn(4);
       expect(fn).toHaveBeenCalledTimes(1);
     });
+
+    test('leading throttle invoked once on 100k events', async () => {
+      const throttleFn = throttle(fn, { delay: 50, leading: true });
+  
+      for (let i = 0; i < heavyLoadCallsCount; i++) {
+        throttleFn(i);
+      }
+  
+      expect(fn).toHaveBeenCalledTimes(1);
+      expect(fn).toHaveReturnedWith(0);
+    });
 })
