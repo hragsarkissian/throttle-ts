@@ -51,13 +51,12 @@ type ThrottleOptions = {
         }, options.delay);
       } else {
         if (!wait) {
+          wait = true;
           superHandler.invoke(...args);
+          timeLeft = setTimeout(() => {
+            wait = false;
+          }, options.delay);
         }
-        wait = true;
-  
-        timeLeft = setTimeout(() => {
-          wait = false;
-        }, options.delay);
       }
       return result;
     }

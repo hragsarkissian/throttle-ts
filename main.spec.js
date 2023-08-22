@@ -33,6 +33,19 @@ describe('throttle', () => {
       throttleFn(3);
       throttleFn(4);
       expect(fn).toHaveBeenCalledTimes(1);
+      await wait(35);
+      expect(fn).toHaveBeenCalledTimes(1);
+      expect(fn).toHaveReturnedWith(1);
+      throttleFn(5);
+      await wait(20);
+      throttleFn(6);
+      await wait(20);
+      throttleFn(7);
+      await wait(20);
+      throttleFn(8);
+      await wait(40);
+      expect(fn).toHaveBeenCalledTimes(3);
+      expect(fn).toHaveReturnedWith(7);
     });
 
     test('leading throttle invoked once on 100k events', async () => {
