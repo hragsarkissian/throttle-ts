@@ -23,6 +23,16 @@ describe('throttle', () => {
       await wait(35);
       expect(fn).toHaveBeenCalledTimes(1);
       expect(fn).toHaveReturnedWith(4);
+      throttleFn(5);
+      await wait(20);
+      throttleFn(6);
+      await wait(20);
+      throttleFn(7);
+      await wait(20);
+      throttleFn(8);
+      await wait(20);
+      expect(fn).toHaveBeenCalledTimes(3);
+      expect(fn).toHaveReturnedWith(8);
     });
 
     test('leading throttle invoke first event only', async () => {

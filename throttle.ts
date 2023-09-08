@@ -16,7 +16,30 @@ type ThrottleOptions = {
     let timeLeft: NodeJS.Timeout | null = null;
     let result: T;
     let wait = false;
-  
+    let lastArgs: any[]; //Shadi hint : save the argument
+
+    function throttled(...args: any[]): T {
+      if (!options.leading) {
+        if (!timeLeft) {
+          timeLeft = setTimeout(() => {
+              invoke(...lastArgs); //Shadi hint : invoke with the last agument saved
+              timeLeft = null;
+          }, options.delay);
+        } else {
+          lastArgs = args;
+        }
+      } else {
+        if (!wait) {
+          wait = true;
+          superHandler.invoke(...args);
+          timeLeft = setTimeout(() => {
+            wait = false;
+          }, options.delay);
+        }
+      }
+      return result;
+    }
+
     function invoke(...args: any[]): T {
       try {
         result = handler.apply(this, args);
@@ -35,30 +58,6 @@ type ThrottleOptions = {
   
     function onError(error: Error): Error {
       return error;
-    }
-  
-    function throttled(...args: any[]): T {
-      if (!options.leading) {
-        wait = true;
-  
-        if (timeLeft !== null) {
-          superHandler.cancel();
-        }
-  
-        timeLeft = setTimeout(() => {
-          superHandler.invoke(...args);
-          wait = false;
-        }, options.delay);
-      } else {
-        if (!wait) {
-          wait = true;
-          superHandler.invoke(...args);
-          timeLeft = setTimeout(() => {
-            wait = false;
-          }, options.delay);
-        }
-      }
-      return result;
     }
   
     const superHandler: ThrottledHandler<T> = Object.assign(throttled, {
