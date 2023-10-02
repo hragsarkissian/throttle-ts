@@ -3,6 +3,32 @@ import { throttle } from './throttle.ts';
 let fn;
 const heavyLoadCallsCount = 100000;
 
+function createObj() {
+  return {
+    fn: jest.fn((a) => a),
+
+    //preserving the scope
+    scopedHandler: throttle(function (a) {
+      return this.fn(a);
+    }, { delay: 35 }),
+  };
+}
+
+function createFaultyObj(done) {
+  return {
+    fn: jest.fn((a) => a),
+
+    // this handler does not preserve the scope (anon function)
+    wrongHandler: throttle((a) => this.fn(a), {
+      delay: 30,
+      onError: (error) => {
+        expect(error).toBeInstanceOf(Error);
+        done();
+      },
+    }),
+  };
+}
+
 beforeEach(() => {
   fn = jest.fn((a) => a);
 });
@@ -68,4 +94,65 @@ describe('throttle', () => {
       expect(fn).toHaveBeenCalledTimes(1);
       expect(fn).toHaveReturnedWith(0);
     });
+
+    test('throttle invoked once on 100k events', async () => {
+      const throttleFn = throttle(fn, { delay: 50 });
+  
+      for (let i = 0; i < heavyLoadCallsCount; i++) {
+        throttleFn(i);
+      }
+  
+      expect(fn).toHaveBeenCalledTimes(0);
+      await wait(55);
+  
+      for (let i = 0; i < heavyLoadCallsCount; i++) {
+        throttleFn(i);
+      }
+  
+      expect(fn).toHaveBeenCalledTimes(1);
+      expect(fn).toHaveReturnedWith(heavyLoadCallsCount - 1);
+    });
+
+    test('leading throttle invoked once on 100k events', async () => {
+      const throttleFn = throttle(fn, { delay: 50, leading: true });
+  
+      for (let i = 0; i < heavyLoadCallsCount; i++) {
+        throttleFn(i);
+      }
+  
+      expect(fn).toHaveBeenCalledTimes(1);
+      expect(fn).toHaveReturnedWith(0);
+    });
+
+    test('throttle preserves the scope', async () => {
+      const obj = createObj();
+      let result;
+  
+      result = obj.scopedHandler(1);
+      result = obj.scopedHandler(2);
+      result = obj.scopedHandler(3);
+      result = obj.scopedHandler(4);
+  
+      expect(obj.fn).toHaveBeenCalledTimes(0);
+      expect(result).toBe(undefined);
+  
+      await wait(35);
+      expect(obj.fn).toHaveBeenCalledTimes(1);
+      expect(result).toBe(undefined);
+  
+      result = obj.scopedHandler(5);
+      expect(obj.fn).toHaveBeenCalledTimes(1);
+      expect(result).toBe(4);
+    });
+
+    test('call onError when handler scope fails', (done) => {
+      let result, faultyObj = createFaultyObj(done);
+  
+      result = faultyObj.wrongHandler(1);
+      result = faultyObj.wrongHandler(2);
+  
+      expect(faultyObj.fn).toHaveBeenCalledTimes(0);
+      expect(result).toBe(undefined);
+    });
+  
 })
