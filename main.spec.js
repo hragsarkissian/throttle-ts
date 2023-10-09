@@ -13,6 +13,10 @@ function createObj() {
     }, { delay: 35 }),
   };
 }
+// hint: the handle will not have the scope of the object
+//the scope is lost because the callback does not have the parent object
+// Important : once you do a callback you lose the scope
+
 
 function createFaultyObj(done) {
   return {

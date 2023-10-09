@@ -1,6 +1,7 @@
 type ThrottleOptions = {
     delay: number;
     leading?: boolean;
+    onError?: (error: Error | unknown) => void;
   };
   
   type ThrottledHandler<T> = {
@@ -18,11 +19,11 @@ type ThrottleOptions = {
     let wait = false;
     let lastArgs: any[]; //Shadi hint : save the argument
 
-    function throttled(...args: any[]): T {
+    function throttled(this, ...args: any[]): T {
       if (!options.leading) {
         if (!timeLeft) {
           timeLeft = setTimeout(() => {
-              invoke(...lastArgs); //Shadi hint : invoke with the last agument saved
+              invoke(this, ...lastArgs); //Shadi hint : invoke with the last agument saved
               timeLeft = null;
           }, options.delay);
         } else {
@@ -31,7 +32,7 @@ type ThrottleOptions = {
       } else {
         if (!wait) {
           wait = true;
-          superHandler.invoke(...args);
+          superHandler.invoke(this, ...args);
           timeLeft = setTimeout(() => {
             wait = false;
           }, options.delay);
@@ -40,11 +41,15 @@ type ThrottleOptions = {
       return result;
     }
 
-    function invoke(...args: any[]): T {
+    function invoke(scope, ...args: any[]): T {
       try {
-        result = handler.apply(this, args);
+        result = handler.apply(scope, args);
       } catch (err) {
-        onError(err);
+        if(options.onError)
+        options.onError(err)
+        else{
+          throw err;
+        }
       }
       return result;
     }
@@ -54,10 +59,6 @@ type ThrottleOptions = {
       if (timeLeft) {
         clearTimeout(timeLeft);
       }
-    }
-  
-    function onError(error: Error): Error {
-      return error;
     }
   
     const superHandler: ThrottledHandler<T> = Object.assign(throttled, {
