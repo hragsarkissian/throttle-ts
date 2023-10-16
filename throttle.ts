@@ -5,21 +5,21 @@ type ThrottleOptions = {
   };
   
   type ThrottledHandler<T> = {
-    (...args: any[]): T;
+    (...args: number[]): T;
     invoke: (...args: any[]) => T;
     cancel: () => void;
   };
   
   export function throttle<T>(
-    handler: (...args: any[]) => T,
+    handler: (...args: number[]) => T,
     options: ThrottleOptions
   ): ThrottledHandler<T> {
     let timeLeft: NodeJS.Timeout | null = null;
     let result: T;
-    let wait = false;
-    let lastArgs: any[]; //Shadi hint : save the argument
+    let wait: boolean = false;
+    let lastArgs: number[]; //Shadi hint : save the argument
 
-    function throttled(this, ...args: any[]): T {
+    function throttled(this: Window, ...args: number[]): T {
       if (!options.leading) {
         if (!timeLeft) {
           timeLeft = setTimeout(() => {
@@ -41,7 +41,7 @@ type ThrottleOptions = {
       return result;
     }
 
-    function invoke(scope, ...args: any[]): T {
+    function invoke(scope: Window, ...args: number[]): T {
       try {
         result = handler.apply(scope, args);
       } catch (err) {
